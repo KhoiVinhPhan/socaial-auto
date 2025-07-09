@@ -48,7 +48,7 @@ for channel in channels:
 
     # click vào vị trí user
     print("Nhấn vào người dùng")
-    pyautogui.sleep(3)
+    pyautogui.sleep(5)
     pyautogui.click(40, 243)
 
     # click vào video
