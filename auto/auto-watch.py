@@ -68,8 +68,9 @@ if app:
             
             
             # Kết nối ứng dụng
-            print("Kết nối thiết bị")
-            pyautogui.click(x + 370, y + 79)
+            print(f"Mở ứng dụng {app_name}")
+            os.system(f"open -a {app_name}")
+            pyautogui.sleep(1)  # Đợi ứng dụng khởi động
 
             # click vào vị trí search
             print("Nhấn vào nút search")

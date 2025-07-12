@@ -67,6 +67,13 @@ if app:
             # exit()
 
 
+            
+            
+            # Kết nối ứng dụng
+            print(f"Mở ứng dụng {app_name}")
+            os.system(f"open -a {app_name}")
+            pyautogui.sleep(1)  # Đợi ứng dụng khởi động
+
             try:
                 # Tìm vị trí của hình ảnh trên màn hình
                 # Thay 'ten_hinh_anh.png' bằng đường dẫn đến file hình ảnh của bạn
@@ -88,11 +95,6 @@ if app:
                 print(f"Có lỗi xảy ra: {e}")
 
             exit()
-            
-            
-            # Kết nối ứng dụng
-            print("Kết nối thiết bị")
-            pyautogui.click(x + 370, y + 79)
 
             # click vào vị trí search
             print("Nhấn vào nút search")
