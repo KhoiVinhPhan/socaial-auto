@@ -74,28 +74,6 @@ if app:
             os.system(f"open -a {app_name}")
             pyautogui.sleep(1)  # Đợi ứng dụng khởi động
 
-            try:
-                # Tìm vị trí của hình ảnh trên màn hình
-                # Thay 'ten_hinh_anh.png' bằng đường dẫn đến file hình ảnh của bạn
-                image_location = pyautogui.locateOnScreen('./images/like.png', confidence=0.8)
-                print('image_location', image_location)
-                
-                if image_location is not None:
-                     # Tính toán tọa độ trung tâm của hình ảnh
-                    image_center = pyautogui.center(image_location)  # Tọa độ trung tâm (x, y)
-                    print('image_center', image_center)
-
-                    # Click vào vị trí của hình ảnh
-                    print('click vào vị trí của hình ảnh')
-                    pyautogui.click(image_center)
-                else:
-                    print("Không tìm thấy hình ảnh trên màn hình")
-
-            except Exception as e:
-                print(f"Có lỗi xảy ra: {e}")
-
-            exit()
-
             # click vào vị trí search
             print("Nhấn vào nút search")
             pyautogui.sleep(1)
@@ -140,6 +118,27 @@ if app:
                     print(f"Xem video {i+1} trong vòng 5s")
                     pyautogui.sleep(5)
 
+                    # click vào vị trí like
+                    try:
+                        # Tìm vị trí của hình ảnh trên màn hình
+                        # Thay 'ten_hinh_anh.png' bằng đường dẫn đến file hình ảnh của bạn
+                        image_location = pyautogui.locateOnScreen('./images/like.png', confidence=0.8)
+                        print('image_location', image_location)
+                        
+                        if image_location is not None:
+                            # Tính toán tọa độ trung tâm của hình ảnh
+                            image_center = pyautogui.center(image_location)  # Tọa độ trung tâm (x, y)
+                            print('image_center', image_center)
+
+                            # Click vào vị trí của hình ảnh
+                            print('Click vào vị trí của hình ảnh like')
+                            pyautogui.click(image_center)
+                        else:
+                            print("Không tìm thấy hình ảnh trên màn hình")
+
+                    except Exception as e:
+                        print(f"Có lỗi xảy ra: {e}")
+
                     if i < 2:  # Không cần chuyển video ở lần cuối
                         print("Chuyển video mới")
                         # click và giữ chuột tại vị trí A
@@ -149,14 +148,10 @@ if app:
                         # thả chuột
                         pyautogui.mouseUp()
 
-                        # click vào vị trí like
-                        print("Nhấn vào nút like")
-                        pyautogui.sleep(1)
-                        pyautogui.click(x + 369, y + 449)
 
             break
     print("Đã xem xong tất cả các kênh")
-    print("----------Kết thúc chương trình----------")
+    print("----------KẾT THÚC CHƯƠNG TRÌNH----------")
     exit()
 else:
     print(f"Ứng dụng {app_name} không chạy.")
