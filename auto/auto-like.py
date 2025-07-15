@@ -122,8 +122,7 @@ if app:
                     try:
                         # Tìm vị trí của hình ảnh trên màn hình
                         # Thay 'ten_hinh_anh.png' bằng đường dẫn đến file hình ảnh của bạn
-                        image_location = pyautogui.locateOnScreen('./images/like.png', confidence=0.8)
-                        print('image_location', image_location)
+                        image_location = pyautogui.locateOnScreen('./images/like.png', confidence=0.9)
                         
                         if image_location is not None:
                             # Tính toán tọa độ trung tâm của hình ảnh
@@ -137,7 +136,7 @@ if app:
                             print("Không tìm thấy hình ảnh trên màn hình")
 
                     except Exception as e:
-                        print(f"Có lỗi xảy ra: {e}")
+                        print(f"Có lỗi xảy ra: khả năng videp đã được like {e}")
 
                     if i < 2:  # Không cần chuyển video ở lần cuối
                         print("Chuyển video mới")

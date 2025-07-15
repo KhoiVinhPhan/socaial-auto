@@ -122,7 +122,7 @@ if app:
                     try:
                         # Tìm vị trí của hình ảnh trên màn hình
                         # Thay 'ten_hinh_anh.png' bằng đường dẫn đến file hình ảnh của bạn
-                        image_location = pyautogui.locateOnScreen('./images/follow-small-4.png', confidence=0.8)
+                        image_location = pyautogui.locateOnScreen('./images/follow-small.png', confidence=0.8)
                         
                         if image_location is not None:
                             # Tính toán tọa độ trung tâm của hình ảnh
