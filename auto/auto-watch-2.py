@@ -39,92 +39,66 @@ if apps:
             height = window.get(CG.kCGWindowBounds, {}).get('Height', 0)
             kCGWindowOwnerPID = window.get(CG.kCGWindowOwnerPID, 0)
             kCGWindowName = window.get(CG.kCGWindowName, '')
-            found_windows.append({'x': x, 'y': y, 'width': width, 'height': height, 'kCGWindowOwnerPID': kCGWindowOwnerPID, 'kCGWindowName': kCGWindowName})
-            
-    for window in found_windows:
-        x = window['x']
-        y = window['y']
-        width = window['width']
-        height = window['height']
-        kCGWindowOwnerPID = window['kCGWindowOwnerPID']
-        kCGWindowName = window['kCGWindowName']
-        print(f"Tìm thấy cửa sổ BlueStacks: {kCGWindowName} - PID: {kCGWindowOwnerPID} tại vị trí: x={x}, y={y}. Kích thước hiện tại: width={width}, height={height}")
+            print(f"----------Tìm thấy cửa sổ BlueStacks: {kCGWindowName} - PID: {kCGWindowOwnerPID} tại vị trí: x={x}, y={y}. Kích thước hiện tại: width={width}, height={height}----------")
 
-        # # lấy vị trị tương đối của chuột trong app
-        # # Đợi 5 giây
-        # pyautogui.sleep(5)
-        # # Lấy vị trí hiện tại của chuột
-        # current_x, current_y = pyautogui.position()
-        # # Tính toán vị trí tương đối so với cửa sổ
-        # relative_x = current_x - x
-        # relative_y = current_y - y
-        # print(f"Vị trí tương đối: x={relative_x}, y={relative_y}")
-        # exit()
-        
-        
-        # Kết nối ứng dụng
-        print(f"----------Mở ứng dụng {app_name} - PID: {kCGWindowOwnerPID} - Tên cửa sổ: {kCGWindowName}----------")
-        os.system(f"open -a {app_name}")
-        pyautogui.sleep(1)  # Đợi ứng dụng khởi động lâu hơn
-        # Click vào cửa sổ để kích hoạt focus
-        pyautogui.click(x + width//2, y + height//2)  # Click vào giữa cửa sổ
-        pyautogui.sleep(0.5)  # Đợi một chút để focus được kích hoạt
+            # Kết nối ứng dụng
+            print(f"Mở ứng dụng {app_name} - PID: {kCGWindowOwnerPID} - Tên cửa sổ: {kCGWindowName}")
+            os.system(f"open -a {app_name}")
+            pyautogui.sleep(1)  # Đợi ứng dụng khởi động lâu hơn
+            # Click vào cửa sổ để kích hoạt focus
+            pyautogui.click(x + width//2, y + height//2)  # Click vào giữa cửa sổ
+            pyautogui.sleep(0.5)  # Đợi một chút để focus được kích hoạt
 
-        # click vào vị trí search
-        pyautogui.sleep(1)
-        print("Nhấn vào nút search")
-        pyautogui.click(x + 370, y + 79)
+            # click vào vị trí search
+            pyautogui.sleep(1)
+            print("Nhấn vào nút search")
+            pyautogui.click(x + 370, y + 79)
 
+            # Danh sách các kênh cần xem
+            # Format channel URLs to usernames by removing the domain prefix
+            channels = [channel.replace('https://www.tiktok.com/', '') for channel in channels]
 
-        # Danh sách các kênh cần xem
-        # Format channel URLs to usernames by removing the domain prefix
-        channels = [channel.replace('https://www.tiktok.com/', '') for channel in channels]
+            for channel in channels:
+                if channel != channels[0]:  # Nếu không phải channel đầu tiên
+                    pyautogui.sleep(1)
+                    print("Click vào icon search nhỏ")
+                    pyautogui.click(x + 68, y + 76)
 
-
-        for channel in channels:
-            if channel != channels[0]:  # Nếu không phải channel đầu tiên
+                # Nhập text vào vùng input
                 pyautogui.sleep(1)
-                print("Click vào icon search nhỏ")
-                pyautogui.click(x + 68, y + 76)
+                print(f"Nhập kênh tìm kiếm: {channel}")
+                pyautogui.typewrite(channel)
 
+                # click vào vị trí đó search
+                pyautogui.sleep(1)
+                print("Thực hiện sự kiện search") 
+                pyautogui.click(x + 355, y + 76)
 
-            # Nhập text vào vùng input
-            pyautogui.sleep(1)
-            print(f"Nhập kênh tìm kiếm: {channel}")
-            pyautogui.typewrite(channel)
-
-            # click vào vị trí đó search
-            pyautogui.sleep(1)
-            print("Thực hiện sự kiện search") 
-            pyautogui.click(x + 355, y + 76)
-
-            # click vào vị trí user
-            print("Nhấn vào người dùng")
-            pyautogui.sleep(5)
-            pyautogui.click(x + 39, y + 205)
-
-            # click vào video
-            pyautogui.sleep(5)
-            print("Nhấn vào xem video")
-            pyautogui.click(x + 61, y + 426)
-
-            # Xem 3 video cho mỗi kênh
-            for i in range(3):
-                # xem video 5s
-                print(f"Xem video {i+1} trong vòng 5s")
+                # click vào vị trí user
+                print("Nhấn vào người dùng")
                 pyautogui.sleep(5)
+                pyautogui.click(x + 39, y + 205)
 
-                if i < 2:  # Không cần chuyển video ở lần cuối
-                    print("Chuyển video mới")
-                    # click và giữ chuột tại vị trí A
-                    pyautogui.mouseDown(x + 184, y + 550)
-                    # kéo chuột đến vị trí B 
-                    pyautogui.moveTo(x + 189, y + 147)
-                    # thả chuột
-                    pyautogui.mouseUp()
+                # click vào video
+                pyautogui.sleep(5)
+                print("Nhấn vào xem video")
+                pyautogui.click(x + 61, y + 426)
 
-    print("Đã xem xong tất cả các kênh trên tất cả các cửa sổ")
-    print("----------Kết thúc chương trình----------")
-    # exit()
+                # Xem 3 video cho mỗi kênh
+                for i in range(3):
+                    # xem video 5s
+                    print(f"Xem video {i+1} trong vòng 5s")
+                    pyautogui.sleep(5)
+
+                    if i < 2:  # Không cần chuyển video ở lần cuối
+                        print("Chuyển video mới")
+                        # click và giữ chuột tại vị trí A
+                        pyautogui.mouseDown(x + 184, y + 550)
+                        # kéo chuột đến vị trí B 
+                        pyautogui.moveTo(x + 189, y + 147)
+                        # thả chuột
+                        pyautogui.mouseUp()
+            
+    print("----------Kết thúc BOT AUTO WATCH----------")
 else:
     print(f"Không tìm thấy ứng dụng {app_name} đang chạy.")
