@@ -75,12 +75,12 @@ if apps:
                     pyautogui.click(x + 68, y + 76)
 
                 # Nhập text vào vùng input
-                pyautogui.sleep(1)
+                pyautogui.sleep(2)
                 print(f"Nhập kênh tìm kiếm: {channel}")
                 pyautogui.write(channel)
 
                 # click vào vị trí đó search
-                pyautogui.sleep(1)
+                pyautogui.sleep(2)
                 print("Thực hiện sự kiện search") 
                 pyautogui.click(x + 355, y + 76)
 

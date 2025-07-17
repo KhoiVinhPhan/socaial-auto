@@ -75,12 +75,12 @@ if apps:
                     pyautogui.click(x + 68, y + 76)
 
                 # Nhập text vào vùng input
-                pyautogui.sleep(1)
+                pyautogui.sleep(2)
                 print(f"Nhập kênh tìm kiếm: {channel}")
                 pyautogui.typewrite(channel)
 
                 # click vào vị trí đó search
-                pyautogui.sleep(1)
+                pyautogui.sleep(2)
                 print("Thực hiện search") 
                 pyautogui.click(x + 355, y + 76)
 
@@ -100,11 +100,15 @@ if apps:
                     print(f"Xem video {i+1} trong vòng 5s")
                     pyautogui.sleep(5)
 
-                    # click vào vị trí like
+                    # # click vào vị trí like
+                    # # Double click vào trung tâm màn hình
+                    # print("Double click vào trung tâm màn hình")
+                    # pyautogui.doubleClick(x + width//2, y + height//2, interval=0.2)  # Interval 0.2s giữa 2 lần click để đảm bảo ứng dụng nhận diện được
+                    # pyautogui.sleep(1)
                     try:
                         # Tìm vị trí của hình ảnh trên màn hình
                         # Thay 'ten_hinh_anh.png' bằng đường dẫn đến file hình ảnh của bạn
-                        image_location = pyautogui.locateOnScreen('./images/like.png', confidence=0.9)
+                        image_location = pyautogui.locateOnScreen('./images/like-2.png', confidence=0.8)
                         
                         if image_location is not None:
                             # Tính toán tọa độ trung tâm của hình ảnh
@@ -123,12 +127,11 @@ if apps:
                     if i < 2:  # Không cần chuyển video ở lần cuối
                         print("Chuyển video mới")
                         # click và giữ chuột tại vị trí A
-                        pyautogui.mouseDown(x + 181, y + 620)
+                        pyautogui.mouseDown(x + 184, y + 550)
                         # kéo chuột đến vị trí B 
                         pyautogui.moveTo(x + 189, y + 147)
                         # thả chuột
                         pyautogui.mouseUp()
-            break
     
     
     # Send email notification when done
