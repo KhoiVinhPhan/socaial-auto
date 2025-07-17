@@ -44,7 +44,16 @@ if apps:
             # Kết nối ứng dụng
             print(f"Mở ứng dụng {app_name} - PID: {kCGWindowOwnerPID} - Tên cửa sổ: {kCGWindowName}")
             os.system(f"open -a {app_name}")
+            # Đưa cửa sổ lên trên cùng
+            applescript = f"""
+            tell application "{app_name}"
+                activate
+                set frontmost to true
+            end tell
+            """
+            os.system(f"osascript -e '{applescript}'")
             pyautogui.sleep(1)  # Đợi ứng dụng khởi động lâu hơn
+            # exit()
             # Click vào cửa sổ để kích hoạt focus
             pyautogui.click(x + width//2, y + height//2)  # Click vào giữa cửa sổ
             pyautogui.sleep(0.5)  # Đợi một chút để focus được kích hoạt
@@ -67,7 +76,7 @@ if apps:
                 # Nhập text vào vùng input
                 pyautogui.sleep(1)
                 print(f"Nhập kênh tìm kiếm: {channel}")
-                pyautogui.typewrite(channel)
+                pyautogui.write(channel)
 
                 # click vào vị trí đó search
                 pyautogui.sleep(1)
