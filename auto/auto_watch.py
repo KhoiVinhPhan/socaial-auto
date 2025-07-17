@@ -6,6 +6,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data.data import array as channels
+from common.send_mail import send_email
 
 
 app_name = 'BlueStacks'  # Thay thế với tên ứng dụng bạn muốn tìm
@@ -107,7 +108,17 @@ if apps:
                         pyautogui.moveTo(x + 189, y + 147)
                         # thả chuột
                         pyautogui.mouseUp()
-            
+    
+    
+    
+    # Send email notification when done
+    # print("Gửi email notification...")
+    # send_email(
+    #     subject="Auto Bot TikTok",
+    #     body="Auto watch TikTok done",
+    #     receiver_email="khoivinh282828@gmail.com"
+    # )
+
     print("----------Kết thúc BOT AUTO WATCH----------")
 else:
     print(f"Không tìm thấy ứng dụng {app_name} đang chạy.")
