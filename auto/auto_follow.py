@@ -42,6 +42,17 @@ if apps:
             kCGWindowName = window.get(CG.kCGWindowName, '')
             print(f"----------Tìm thấy cửa sổ BlueStacks: {kCGWindowName} - PID: {kCGWindowOwnerPID} tại vị trí: x={x}, y={y}. Kích thước hiện tại: width={width}, height={height}----------")
 
+            # # lấy vị trị tương đối của chuột trong app
+            # # Đợi 5 giây
+            # pyautogui.sleep(5)
+            # # Lấy vị trí hiện tại của chuột
+            # current_x, current_y = pyautogui.position()
+            # # Tính toán vị trí tương đối so với cửa sổ
+            # relative_x = current_x - x
+            # relative_y = current_y - y
+            # print(f"Vị trí tương đối: x={relative_x}, y={relative_y}")
+            # exit()
+
             # Kết nối ứng dụng
             print(f"Mở ứng dụng {app_name} - PID: {kCGWindowOwnerPID} - Tên cửa sổ: {kCGWindowName}")
             os.system(f"open -a {app_name}")
@@ -73,6 +84,11 @@ if apps:
                     pyautogui.sleep(1)
                     print("Click vào icon search nhỏ")
                     pyautogui.click(x + 68, y + 76)
+
+                    pyautogui.sleep(1)
+                    print("Click vào icon xoá search")
+                    pyautogui.click(x + 308, y + 76)
+                    pyautogui.sleep(1)
 
                 # Nhập text vào vùng input
                 pyautogui.sleep(2)
