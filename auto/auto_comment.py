@@ -7,7 +7,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data.data import array as channels
 from common.send_mail import send_email
-
+import random
 
 app_name = 'BlueStacks'  # Thay thế với tên ứng dụng bạn muốn tìm
 
@@ -100,29 +100,22 @@ if apps:
                     print(f"Xem video {i+1} trong vòng 5s")
                     pyautogui.sleep(5)
 
-                    # # click vào vị trí like
-                    # # Double click vào trung tâm màn hình
-                    # print("Double click vào trung tâm màn hình")
-                    # pyautogui.doubleClick(x + width//2, y + height//2, interval=0.2)  # Interval 0.2s giữa 2 lần click để đảm bảo ứng dụng nhận diện được
-                    # pyautogui.sleep(1)
-                    try:
-                        # Tìm vị trí của hình ảnh trên màn hình
-                        # Thay 'ten_hinh_anh.png' bằng đường dẫn đến file hình ảnh của bạn
-                        image_location = pyautogui.locateOnScreen('./images/like-2.png', confidence=0.9)
-                        
-                        if image_location is not None:
-                            # Tính toán tọa độ trung tâm của hình ảnh
-                            image_center = pyautogui.center(image_location)  # Tọa độ trung tâm (x, y)
-                            print('image_center', image_center)
+                    # click vào vị trí comment
+                    print("Nhấn vào vị trí comment")
+                    pyautogui.click(x + 79, y + 714)
 
-                            # Click vào vị trí của hình ảnh
-                            print('Click vào vị trí của hình ảnh like')
-                            pyautogui.click(image_center)
-                        else:
-                            print("Không tìm thấy hình ảnh trên màn hình")
+                    # Nhập text comment
+                    print("Nhập text comment")
+                    pyautogui.sleep(1)
+                    from data.data_comment import array as comments
+                    pyautogui.typewrite(random.choice(comments))
 
-                    except Exception as e:
-                        print(f"Có lỗi xảy ra: khả năng videp đã được like {e}")
+                    # click vào vị trí send
+                    print("Nhấn vào vị trí send")
+                    pyautogui.sleep(2)
+                    pyautogui.click(x + 364, y + 484)
+                    pyautogui.sleep(1)
+
 
                     if i < 2:  # Không cần chuyển video ở lần cuối
                         print("Chuyển video mới")
@@ -138,10 +131,10 @@ if apps:
     # print("Gửi email notification...")
     # send_email(
     #     subject="Auto Bot TikTok",
-    #     body="Auto like TikTok done",
+    #     body="Auto comment TikTok done",
     #     receiver_email="khoivinh282828@gmail.com"
     # )
 
-    print("----------Kết thúc BOT AUTO LIKE----------")
+    print("----------Kết thúc BOT AUTO COMMENT----------")
 else:
     print(f"Không tìm thấy ứng dụng {app_name} đang chạy.")
