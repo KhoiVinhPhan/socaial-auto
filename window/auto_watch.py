@@ -69,6 +69,18 @@ if not windows:
     exit()
 
 if windows:
+    # INSERT_YOUR_REWRITE_HERE
+    import sys
+    # Nhận 2 giá trị truyền từ app.py qua đối số dòng lệnh
+    if len(sys.argv) > 2:
+        view_time = sys.argv[1]
+        num_videos = sys.argv[2]
+        print(f"Đã nhận giá trị từ app.py: Thời lượng xem video (s): {view_time}, Số video xem: {num_videos}")
+    else:
+        view_time = 5
+        num_videos = 3
+        print("Không nhận đủ giá trị từ app.py (cần 2 giá trị: thời lượng xem video và số video xem)")
+
     hwnd = windows[0]
     win_title = win32gui.GetWindowText(hwnd)
     x, y, width, height = get_window_rect(hwnd)
@@ -136,11 +148,11 @@ if windows:
         pyautogui.click(x + 61, y + 426)
 
         # Xem 3 video cho mỗi kênh
-        for i in range(3):
-            print(f"Xem video {i+1} trong vòng 5s")
-            time.sleep(5)
+        for i in range(int(num_videos)):
+            print(f"Xem video {i+1} trong vòng {view_time}s")
+            time.sleep(int(view_time))
 
-            if i < 2:  # Không cần chuyển video ở lần cuối
+            if i < int(num_videos) - 1:  # Không cần chuyển video ở lần cuối
                 print("Chuyển video mới")
                 # click và giữ chuột tại vị trí A
                 pyautogui.mouseDown(x + 184, y + 550)
