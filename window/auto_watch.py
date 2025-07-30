@@ -95,11 +95,10 @@ if windows:
     # Đưa cửa sổ lên trên cùng
     bring_window_to_front(hwnd)
     time.sleep(1)  # Đợi ứng dụng khởi động lâu hơn
-    exit()
 
     # Click vào giữa cửa sổ để kích hoạt focus
     pyautogui.click(x + width // 2, y + height // 2)
-    time.sleep(0.5)
+    time.sleep(1)
 
     # click vào vị trí search
     time.sleep(1)
@@ -129,7 +128,7 @@ if windows:
         # click vào vị trí user
         print("Nhấn vào người dùng")
         time.sleep(5)
-        pyautogui.click(x + 39, y + 205)
+        pyautogui.click(x + 41, y + 192)
 
         # click vào video
         time.sleep(5)
