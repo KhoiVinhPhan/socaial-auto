@@ -78,7 +78,10 @@ comment_button.place(relx=0.2, rely=0.85, anchor="center")
 # Tạo button "Auto follow" 
 def run_auto_follow():
     import os
-    os.system("python auto/auto_follow.py")
+    value_view_time = selected_option_view_time.get()
+    value_number_video = selected_option_num_videos.get()
+    value_vm_name = entry_vm_name.get()
+    os.system(f"python window/auto_follow.py \"{value_view_time}\" \"{value_number_video}\" \"{value_vm_name}\"")
 
 follow_button = tk.Button(root, text="Auto follow", command=run_auto_follow, font=("Arial", 12))
 follow_button.place(relx=0.7, rely=0.85, anchor="center")
