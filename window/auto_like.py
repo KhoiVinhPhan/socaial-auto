@@ -155,6 +155,24 @@ if windows:
             print(f"Xem video {i+1} trong vòng {view_time}s")
             time.sleep(int(view_time))
 
+
+            try:
+                # Tìm vị trí của hình ảnh trên màn hình
+                # Thay 'ten_hinh_anh.png' bằng đường dẫn đến file hình ảnh của bạn
+                image_location = pyautogui.locateOnScreen('./images/like-2.png', confidence=0.8)
+                if image_location is not None:
+                    # Tính toán tọa độ trung tâm của hình ảnh
+                    image_center = pyautogui.center(image_location)  # Tọa độ trung tâm (x, y)
+                    print('image_center', image_center)
+
+                    # Click vào vị trí của hình ảnh
+                    print('Click vào vị trí của hình ảnh like')
+                    pyautogui.click(image_center)
+                else:
+                    print("Không tìm thấy hình ảnh trên màn hình")
+            except Exception as e:
+                print(f"Có lỗi xảy ra: khả năng video đã được like {e}")
+
             if i < int(num_videos) - 1:  # Không cần chuyển video ở lần cuối
                 print("Chuyển video mới")
                 # click và giữ chuột tại vị trí A
@@ -172,6 +190,6 @@ if windows:
     #     receiver_email="khoivinh282828@gmail.com"
     # )
 
-    print("----------Kết thúc BOT AUTO WATCH----------")
+    print("----------Kết thúc BOT AUTO LIKE----------")
 else:
     print(f"Không tìm thấy ứng dụng {app_name} đang chạy.")
