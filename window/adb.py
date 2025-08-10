@@ -99,12 +99,18 @@ if __name__ == "__main__":
         # Lệnh ADB để trả về kích thước màn hình mặc định (reset về auto)
         # send_adb_command(adb_address, ["shell", "wm", "size", "reset"])
         # Mở ứng dụng Settings trên Android
-        send_adb_command(adb_address, ["shell", "am", "start", "-a", "android.settings.SETTINGS"])
+        # send_adb_command(adb_address, ["shell", "am", "start", "-a", "android.settings.SETTINGS"])
         # Bạn có thể gửi thêm các lệnh khác, ví dụ nhấn phím Home:
         # send_adb_command(adb_address, ["shell", "input", "keyevent", "3"])
         # Hoặc chụp màn hình:
         # send_adb_command(adb_address, ["shell", "screencap", "-p", "/sdcard/screen.png"])
         # send_adb_command(adb_address, ["pull", "/sdcard/screen.png", "."])
-        # Mở ứng dụng TikTok trên máy ảo Android qua ADB
-        # send_adb_command(adb_address, ["shell", "monkey", "-p", "com.zhiliaoapp.musically", "-c", "android.intent.category.LAUNCHER", "1"])
-       
+        
+
+        # Click vào ô search của trang home tiktok
+        send_adb_command(adb_address, ["shell", "input", "tap", str(675), str(77)])
+
+        # Nhập text "@ngheunek" vào ô search bằng ADB
+        send_adb_command(adb_address, ["shell", "input", "text", "@ngheunek"])
+
+            
