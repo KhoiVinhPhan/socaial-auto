@@ -1,122 +1,116 @@
 import subprocess
 import time
-import win32gui
-import win32con
-import win32api
-import time
+import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Địa chỉ ADB của máy ảo BlueStacks
-adb_address = "127.0.0.1:5615"
+# ==== CẤU HÌNH THIẾT BỊ ====
+# Mỗi phần tử: {"serial": "...", "window_title": "...", "resolution": (width, height)}
+DEVICES = [
+    {"serial": "127.0.0.1:5615", "window_title": "@rynsey_asmr_ UK#24", "resolution": (427, 735)},
+    {"serial": "127.0.0.1:5635", "window_title": "@woodyandkleiny.02 UK#179", "resolution": (427, 735)},
+    # Thêm nữa nếu cần...
+]
 
-def start_bluestacks():
-    """
-    Hàm này sẽ mở BlueStacks nếu chưa chạy.
-    Thông thường BlueStacks sẽ tự động mở khi bạn thao tác, 
-    nhưng nếu cần bạn có thể mở bằng subprocess với đường dẫn tới BlueStacks.exe.
-    """
-    # Đường dẫn tới file thực thi BlueStacks, thay đổi nếu cài đặt ở vị trí khác
-    bluestacks_path = r"C:\Program Files\BlueStacks_nxt\HD-Player.exe"
-    try:
-        subprocess.Popen([bluestacks_path])
-        print("Đang mở BlueStacks...")
-        time.sleep(10)  # Đợi BlueStacks khởi động
-    except Exception as e:
-        print(f"Lỗi khi mở BlueStacks: {e}")
+# ==== HÀM TIỆN ÍCH ====
+def run(cmd, timeout=None):
+    """Chạy lệnh và trả về (stdout, stderr, returncode)"""
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    return p.stdout.strip(), p.stderr.strip(), p.returncode
 
-def connect_adb(adb_addr):
-    """
-    Kết nối tới máy ảo BlueStacks qua ADB.
-    """
-    try:
-        result = subprocess.run(["adb", "connect", adb_addr], capture_output=True, text=True)
-        print(result.stdout)
-        if "connected" in result.stdout or "already connected" in result.stdout:
-            print(f"Đã kết nối tới {adb_addr} qua ADB.")
+def adb_connect(serial, retry=3, delay=2):
+    for i in range(retry):
+        out, err, rc = run(["adb", "connect", serial])
+        if "connected" in out or "already connected" in out:
+            print(f"[{serial}] Đã kết nối ADB")
             return True
-        else:
-            print(f"Không thể kết nối tới {adb_addr}.")
-            return False
-    except Exception as e:
-        print(f"Lỗi khi kết nối ADB: {e}")
-        return False
+        print(f"[{serial}] Kết nối thất bại, thử lại ({i+1}/{retry}) -> {out or err}")
+        time.sleep(delay)
+    return False
 
-def send_adb_command(adb_addr, command):
-    """
-    Gửi lệnh ADB tới máy ảo.
-    """
-    full_cmd = ["adb", "-s", adb_addr] + command
+def adb(serial, *args, timeout=None):
+    """Gửi lệnh adb -s <serial> ..."""
+    full = ["adb", "-s", serial, *args]
+    out, err, rc = run(full, timeout=timeout)
+    if err:
+        print(f"[{serial}] ERR: {err}")
+    if out:
+        print(f"[{serial}] {out}")
+    return rc == 0, out
+
+# (TÙY CHỌN) Nếu bạn muốn chỉnh vị trí/kích thước cửa sổ BlueStacks theo từng máy:
+def move_window_if_needed(window_title, width, height):
     try:
-        result = subprocess.run(full_cmd, capture_output=True, text=True)
-        print(f"Lệnh: {' '.join(full_cmd)}")
-        print("Kết quả:", result.stdout)
-        if result.stderr:
-            print("Lỗi:", result.stderr)
-    except Exception as e:
-        print(f"Lỗi khi gửi lệnh ADB: {e}")
-
-if __name__ == "__main__":
-    # Bước 1: (Tùy chọn) Mở BlueStacks nếu chưa chạy
-    # start_bluestacks()
-
-    # Bước 2: Kết nối tới máy ảo qua ADB
-    if connect_adb(adb_address):
-        app_name = '@rynsey_asmr_ UK#24'  # Hoặc tên cửa sổ chính xác của bạn
-
-        def enum_windows_callback(hwnd, windows):
+        import win32gui, win32api
+        hwnds = []
+        def enum_cb(hwnd, acc):
             if win32gui.IsWindowVisible(hwnd):
                 title = win32gui.GetWindowText(hwnd)
-                if app_name.lower() in title.lower():
-                    windows.append(hwnd)
+                if window_title.lower() in title.lower():
+                    acc.append(hwnd)
+        win32gui.EnumWindows(enum_cb, hwnds)
+        if not hwnds:
+            print(f"[UI] Không tìm thấy cửa sổ: {window_title}")
+            return
+        hwnd = hwnds[0]
+        screen_w = win32api.GetSystemMetrics(0)
+        screen_h = win32api.GetSystemMetrics(1)
+        x = (screen_w - width)//2
+        y = (screen_h - height)//2
+        win32gui.MoveWindow(hwnd, x, y, width, height, True)
+        print(f"[UI] Đã move/resize cửa sổ '{window_title}' -> {width}x{height}")
+        time.sleep(1)
+    except Exception as e:
+        print(f"[UI] Lỗi chỉnh cửa sổ '{window_title}': {e}")
 
-        def get_bluestacks_window():
-            windows = []
-            win32gui.EnumWindows(enum_windows_callback, windows)
-            return windows
+# ==== LOGIC TÁC VỤ CHO MỘT THIẾT BỊ ====
+def job_for_device(serial, window_title=None, resolution=None):
+    try:
+        # 1) Kết nối ADB
+        if not adb_connect(serial):
+            return f"[{serial}] KO: không kết nối được ADB"
 
-        # Tìm cửa sổ BlueStacks
-        windows = get_bluestacks_window()
-        if windows:
-            hwnd = windows[0]
-            # Đặt kích thước cửa sổ
-            new_width = 427
-            new_height = 735
-            # Lấy kích thước màn hình để căn giữa (tùy chọn)
-            screen_width = win32api.GetSystemMetrics(0)
-            screen_height = win32api.GetSystemMetrics(1)
-            center_x = (screen_width - new_width) // 2
-            center_y = (screen_height - new_height) // 2
-            win32gui.MoveWindow(hwnd, center_x, center_y, new_width, new_height, True)
-            print("Đã thay đổi kích thước cửa sổ BlueStacks.")
-            time.sleep(1)
-        else:
-            print("Không tìm thấy cửa sổ BlueStacks để thay đổi kích thước.")
-            exit()
-       
-        
-        # Click vào ô search của trang home tiktok
-        send_adb_command(adb_address, ["shell", "input", "tap", str(675), str(77)])
+        # 2) (Tùy chọn) căn cửa sổ BlueStacks cho thiết bị này
+        if window_title and resolution:
+            w, h = resolution
+            move_window_if_needed(window_title, w, h)
 
-        # Nhập text "@ngheunek" vào ô search bằng ADB
-        send_adb_command(adb_address, ["shell", "input", "text", "@ngheunek"])
+        # 3) Thực thi chuỗi thao tác TikTok
+        # Click ô search home
+        adb(serial, "shell", "input", "tap", "675", "77")
 
-        # Click vào ô search trong trang tìm kiếm
-        send_adb_command(adb_address, ["shell", "input", "tap", str(659), str(75)])
-       
-        # Click vào người tìm kiếm đầu tiên
-        time.sleep(5)  # chờ 5s để load trang
-        send_adb_command(adb_address, ["shell", "input", "tap", str(66), str(281)])
+        # Nhập text (khi có ký tự đặc biệt, đôi khi cần escape; có thể thử 'input text \"\\@ngheunek\"')
+        adb(serial, "shell", "input", "text", "@ngheunek")
 
-        # Click vào video đầu tiên của người tìm kiếm
-        time.sleep(5)  # chờ 5s để load trang
-        send_adb_command(adb_address, ["shell", "input", "tap", str(111), str(665)])
+        # Click ô search trong trang tìm kiếm
+        adb(serial, "shell", "input", "tap", "659", "75")
 
-        # Lướt video tiếp theo
+        # Chờ và chọn kết quả đầu
+        time.sleep(5)
+        adb(serial, "shell", "input", "tap", "66", "281")
+
+        # Chờ và mở video đầu tiên
+        time.sleep(5)
+        adb(serial, "shell", "input", "tap", "111", "665")
+
+        # Lướt 3 video
         for _ in range(3):
-            time.sleep(5)  # xem video trong 5s
-            send_adb_command(adb_address, [
-                "shell", "input", "swipe",
-                str(339), str(959), str(363), str(137), str(500)
-            ])
+            time.sleep(5)
+            adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
 
+        return f"[{serial}] OK"
+    except Exception as e:
+        return f"[{serial}] Lỗi: {e}"
 
-            
+# ==== CHẠY SONG SONG NHIỀU THIẾT BỊ ====
+def main():
+    futures = []
+    with ThreadPoolExecutor(max_workers=len(DEVICES)) as ex:
+        for d in DEVICES:
+            futures.append(
+                ex.submit(job_for_device, d["serial"], d.get("window_title"), d.get("resolution"))
+            )
+        for f in as_completed(futures):
+            print(f.result())
+
+if __name__ == "__main__":
+    main()
