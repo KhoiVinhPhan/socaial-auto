@@ -1,5 +1,9 @@
 import subprocess
 import time
+import win32gui
+import win32con
+import win32api
+import time
 
 # Địa chỉ ADB của máy ảo BlueStacks
 adb_address = "127.0.0.1:5615"
@@ -56,15 +60,6 @@ if __name__ == "__main__":
 
     # Bước 2: Kết nối tới máy ảo qua ADB
     if connect_adb(adb_address):
-        # Lệnh "wm size" chỉ thay đổi kích thước màn hình ảo Android, 
-        # nhưng không ảnh hưởng tới kích thước cửa sổ BlueStacks trên Windows.
-        # Để thay đổi kích thước cửa sổ BlueStacks, bạn cần dùng win32gui từ pywin32 (chạy trên Windows).
-        # Ví dụ:
-        import win32gui
-        import win32con
-        import win32api
-        import time
-
         app_name = '@rynsey_asmr_ UK#24'  # Hoặc tên cửa sổ chính xác của bạn
 
         def enum_windows_callback(hwnd, windows):
@@ -95,22 +90,33 @@ if __name__ == "__main__":
             time.sleep(1)
         else:
             print("Không tìm thấy cửa sổ BlueStacks để thay đổi kích thước.")
-        # Bước 3: Gửi lệnh điều khiển máy ảo, ví dụ mở ứng dụng Settings
-        # Lệnh ADB để trả về kích thước màn hình mặc định (reset về auto)
-        # send_adb_command(adb_address, ["shell", "wm", "size", "reset"])
-        # Mở ứng dụng Settings trên Android
-        # send_adb_command(adb_address, ["shell", "am", "start", "-a", "android.settings.SETTINGS"])
-        # Bạn có thể gửi thêm các lệnh khác, ví dụ nhấn phím Home:
-        # send_adb_command(adb_address, ["shell", "input", "keyevent", "3"])
-        # Hoặc chụp màn hình:
-        # send_adb_command(adb_address, ["shell", "screencap", "-p", "/sdcard/screen.png"])
-        # send_adb_command(adb_address, ["pull", "/sdcard/screen.png", "."])
+            exit()
+       
         
-
         # Click vào ô search của trang home tiktok
         send_adb_command(adb_address, ["shell", "input", "tap", str(675), str(77)])
 
         # Nhập text "@ngheunek" vào ô search bằng ADB
         send_adb_command(adb_address, ["shell", "input", "text", "@ngheunek"])
+
+        # Click vào ô search trong trang tìm kiếm
+        send_adb_command(adb_address, ["shell", "input", "tap", str(659), str(75)])
+       
+        # Click vào người tìm kiếm đầu tiên
+        time.sleep(5)  # chờ 5s để load trang
+        send_adb_command(adb_address, ["shell", "input", "tap", str(66), str(281)])
+
+        # Click vào video đầu tiên của người tìm kiếm
+        time.sleep(5)  # chờ 5s để load trang
+        send_adb_command(adb_address, ["shell", "input", "tap", str(111), str(665)])
+
+        # Lướt video tiếp theo
+        for _ in range(3):
+            time.sleep(5)  # xem video trong 5s
+            send_adb_command(adb_address, [
+                "shell", "input", "swipe",
+                str(339), str(959), str(363), str(137), str(500)
+            ])
+
 
             
