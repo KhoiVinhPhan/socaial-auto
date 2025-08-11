@@ -1,13 +1,16 @@
+import os
 import subprocess
 import time
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
+
 # ==== CẤU HÌNH THIẾT BỊ ====
 # Mỗi phần tử: {"serial": "...", "window_title": "...", "resolution": (width, height)}
 DEVICES = [
     {"serial": "127.0.0.1:5615", "window_title": "@rynsey_asmr_ UK#24", "resolution": (427, 735)},
-    {"serial": "127.0.0.1:5635", "window_title": "@woodyandkleiny.02 UK#179", "resolution": (427, 735)},
+    # {"serial": "127.0.0.1:5635", "window_title": "@woodyandkleiny.02 UK#179", "resolution": (427, 735)},
     # Thêm nữa nếu cần...
 ]
 
@@ -78,24 +81,34 @@ def job_for_device(serial, window_title=None, resolution=None):
         # Click ô search home
         adb(serial, "shell", "input", "tap", "675", "77")
 
-        # Nhập text (khi có ký tự đặc biệt, đôi khi cần escape; có thể thử 'input text \"\\@ngheunek\"')
-        adb(serial, "shell", "input", "text", "@ngheunek")
 
-        # Click ô search trong trang tìm kiếm
-        adb(serial, "shell", "input", "tap", "659", "75")
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from data.data import array as channels
+        channels = [channel.replace('https://www.tiktok.com/', '') for channel in channels]
 
-        # Chờ và chọn kết quả đầu
-        time.sleep(5)
-        adb(serial, "shell", "input", "tap", "66", "281")
+        for idx, channel in enumerate(channels):
+            if idx != 0:  # Nếu không phải channel đầu tiên
+                time.sleep(2)
+                adb(serial, "shell", "input", "tap", "115", "73")
 
-        # Chờ và mở video đầu tiên
-        time.sleep(5)
-        adb(serial, "shell", "input", "tap", "111", "665")
+            # Nhập text (khi có ký tự đặc biệt, đôi khi cần escape; có thể thử 'input text \"\\@ngheunek\"')
+            adb(serial, "shell", "input", "text", channel)
 
-        # Lướt 3 video
-        for _ in range(3):
+            # Click ô search trong trang tìm kiếm
+            adb(serial, "shell", "input", "tap", "659", "75")
+
+            # Chờ và chọn kết quả đầu
             time.sleep(5)
-            adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
+            adb(serial, "shell", "input", "tap", "66", "281")
+
+            # Chờ và mở video đầu tiên
+            time.sleep(5)
+            adb(serial, "shell", "input", "tap", "111", "665")
+
+            # Lướt 3 video
+            for _ in range(5):
+                time.sleep(5)
+                adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
 
         return f"[{serial}] OK"
     except Exception as e:
