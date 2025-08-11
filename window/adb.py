@@ -2,9 +2,8 @@ import os
 import subprocess
 import time
 import sys
-import cv2
-import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 
 # ==== CẤU HÌNH THIẾT BỊ ====
@@ -14,23 +13,6 @@ DEVICES = [
     # {"serial": "127.0.0.1:5635", "window_title": "@woodyandkleiny.02 UK#179", "resolution": (427, 735)},
     # Thêm nữa nếu cần...
 ]
-
-def screenshot(serial):
-    out = subprocess.run(["adb", "-s", serial, "exec-out", "screencap", "-p"],
-                         stdout=subprocess.PIPE).stdout
-    img = cv2.imdecode(np.frombuffer(out, np.uint8), cv2.IMREAD_COLOR)
-    return img
-
-def find_icon(screen, template_path, threshold=0.85):
-    template = cv2.imread(template_path, cv2.IMREAD_COLOR)
-    result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
-    _, max_val, _, max_loc = cv2.minMaxLoc(result)
-    print(max_val)
-    if max_val >= threshold:
-        h, w = template.shape[:2]
-        cx, cy = max_loc[0] + w//2, max_loc[1] + h//2
-        return cx, cy, max_val
-    return None
 
 # ==== HÀM TIỆN ÍCH ====
 def run(cmd, timeout=None):
@@ -126,16 +108,6 @@ def job_for_device(serial, window_title=None, resolution=None):
             # Lướt 3 video
             for _ in range(5):
                 time.sleep(5)
-                #Click like
-                screen = screenshot(serial)
-                pos = find_icon(screen, "./images/like-3.png")
-                print(pos)
-                if pos:
-                    x_icon, y_icon, score = pos
-                    adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
-                time.sleep(2)
-
-                #Lướt video
                 adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
 
         return f"[{serial}] OK"
