@@ -5,15 +5,9 @@ import sys
 import cv2
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from data.data_device import array as DEVICES
 
-
-# ==== CẤU HÌNH THIẾT BỊ ====
-# Mỗi phần tử: {"serial": "...", "window_title": "...", "resolution": (width, height)}
-DEVICES = [
-    # {"serial": "127.0.0.1:5615", "window_title": "@rynsey_asmr_ UK#24", "resolution": (427, 735)},
-    {"serial": "127.0.0.1:5635", "window_title": "@woodyandkleiny.02 UK#179", "resolution": (427, 735)},
-    # Thêm nữa nếu cần...
-]
 
 def screenshot(serial):
     out = subprocess.run(["adb", "-s", serial, "exec-out", "screencap", "-p"],
