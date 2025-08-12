@@ -97,9 +97,13 @@ def job_for_device(serial, window_title=None, resolution=None):
             # Click ô search trong trang tìm kiếm
             adb(serial, "shell", "input", "tap", "659", "75")
 
-            # Chờ và chọn kết quả đầu
+            # Click vào tab user
+            time.sleep(4)
+            adb(serial, "shell", "input", "tap", "141", "141")
+
+            # Chờ và chọn user đầu tiên
             time.sleep(5)
-            adb(serial, "shell", "input", "tap", "66", "281")
+            adb(serial, "shell", "input", "tap", "68", "242")
 
             # Chờ và mở video đầu tiên
             time.sleep(5)
