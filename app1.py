@@ -26,11 +26,27 @@ def run_script(script_name: str, view_time: str, num_videos: str):
         return
 
     try:
-        # Popen để không chặn UI, nếu bạn muốn đợi kết thúc: dùng subprocess.run(...)
-        import os
-        os.system(f"python window/{script_name}")
+        # Tùy chọn cờ tạo tiến trình (Windows: ẩn console)
+        creationflags = 0
+        if sys.platform == "win32":
+            creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
-        status_var.set(f"Đã chạy {script_name} • thời lượng {view_time}s • {num_videos} video")
+        # Truyền tham số nếu script con cần
+        p = subprocess.Popen(
+            [sys.executable, str(script_path), view_time, num_videos],
+            creationflags=creationflags
+        )
+
+        status_var.set(f"Đang chạy {script_name} (PID {p.pid}) • thời lượng {view_time}s • {num_videos} video")
+
+        # Theo dõi hoàn tất mà không chặn UI
+        def _poll():
+            if p.poll() is None:
+                root.after(500, _poll)
+            else:
+                status_var.set(f"{script_name} đã xong • exit={p.returncode}")
+        root.after(500, _poll)
+
     except Exception as e:
         messagebox.showerror("Lỗi chạy script", str(e))
 
@@ -41,7 +57,7 @@ def on_action(action_key: str):
     mapping = {
         "watch": "adb_watch.py",
         "like": "adb_like.py",
-        "comment": "wadb_comment.py",
+        "comment": "adb_comment.py",
         "follow": "adb_follow.py",
         "foryou": "adb_foryou.py",
     }
