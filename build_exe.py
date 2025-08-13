@@ -24,7 +24,7 @@ def build_exe():
             "--windowed",  # Không hiển thị console window
             "--name=AutoBot",  # Tên file .exe
             "--icon=images/like.png",  # Icon cho file .exe (nếu có)
-            "app1.py"
+            "app.py"
         ]
         
         subprocess.check_call(cmd)
