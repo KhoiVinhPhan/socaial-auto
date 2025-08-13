@@ -1,4 +1,4 @@
 # Exclude data_device.py from Git tracking
 # Đảm bảo đã xóa file khỏi index nếu đã commit trước đó:
 # git rm --cached data/data_device.py
-# data/data_device.py
+data/*
