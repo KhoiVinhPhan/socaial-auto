@@ -43,6 +43,7 @@ def on_action(action_key: str):
         "like": "adb_like.py",
         "comment": "wadb_comment.py",
         "follow": "adb_follow.py",
+        "foryou": "adb_foryou.py",
     }
     run_script(mapping[action_key], view_time, num_videos)
 
@@ -116,11 +117,13 @@ btn_watch = ttk.Button(actions, text="Auto Watch", command=lambda: on_action("wa
 btn_like = ttk.Button(actions, text="Auto Like", command=lambda: on_action("like"))
 btn_comment = ttk.Button(actions, text="Auto Comment", command=lambda: on_action("comment"))
 btn_follow = ttk.Button(actions, text="Auto Follow", command=lambda: on_action("follow"))
+btn_foryou = ttk.Button(actions, text="For You", command=lambda: on_action("foryou"))
 
 btn_watch.grid(row=0, column=0, padx=6, pady=4, sticky="ew")
 btn_like.grid(row=0, column=1, padx=6, pady=4, sticky="ew")
 btn_comment.grid(row=0, column=2, padx=6, pady=4, sticky="ew")
 btn_follow.grid(row=0, column=3, padx=6, pady=4, sticky="ew")
+btn_foryou.grid(row=0, column=4, padx=6, pady=4, sticky="ew")
 
 # Thanh trạng thái
 status_var = tk.StringVar(value="Sẵn sàng.")
@@ -130,5 +133,5 @@ status_bar.grid(row=3, column=0, sticky="ew", padx=0)
 # Phím tắt tiện dụng
 root.bind("<Return>", lambda e: on_action("watch"))  # Enter = Auto Watch
 
-center_window(root, 600, 420)
+center_window(root, 760, 420)
 root.mainloop()
