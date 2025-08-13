@@ -13,6 +13,37 @@ APP_TITLE = "Auto bot by khoivinhphan"
 # -----------------------------
 running_processes = []
 
+# Danh sách các button để disable/enable
+action_buttons = []
+
+def disable_all_buttons():
+    """Disable tất cả các button khi có script đang chạy"""
+    for btn in action_buttons:
+        btn.configure(state="disabled")
+        # Thêm tooltip để giải thích
+        # Đổi text thành "Đang chạy..." thay vì nối vào text cũ
+        btn.configure(text="Đang chạy...")
+    # Disable cả combobox
+    view_time_combo.configure(state="disabled")
+    num_videos_combo.configure(state="disabled")
+
+def enable_all_buttons():
+    """Enable tất cả các button khi không có script nào chạy"""
+    for btn in action_buttons:
+        btn.configure(state="normal")
+        # Khôi phục text gốc
+        original_texts = {
+            "Auto Watch": "Auto Watch",
+            "Auto Like": "Auto Like", 
+            "Auto Comment": "Auto Comment",
+            "Auto Follow": "Auto Follow",
+            "For You": "For You"
+        }
+        btn.configure(text=original_texts.get(btn.cget('text').replace(" (Đang chạy...)", ""), btn.cget('text').replace(" (Đang chạy...)", "")))
+    # Enable cả combobox
+    view_time_combo.configure(state="readonly")
+    num_videos_combo.configure(state="readonly")
+
 def cleanup_processes():
     """Dừng tất cả process con đang chạy"""
     for process in running_processes:
@@ -27,6 +58,9 @@ def cleanup_processes():
                 print(f"Đã dừng process {process.pid}")
         except Exception as e:
             print(f"Lỗi khi dừng process {process.pid}: {e}")
+    
+    # Enable lại tất cả button sau khi dừng
+    enable_all_buttons()
 
 def on_closing():
     """Handler khi tắt giao diện"""
@@ -75,6 +109,9 @@ def run_script(script_name: str, view_time: str, num_videos: str):
         
         # Thêm vào danh sách process đang chạy
         running_processes.append(p)
+        
+        # Disable tất cả button khi bắt đầu chạy script
+        disable_all_buttons()
 
         status_var.set(f"Đang chạy {script_name} (PID {p.pid}) • thời lượng {view_time}s • {num_videos} video • Có {len(running_processes)} script đang chạy")
 
@@ -87,6 +124,10 @@ def run_script(script_name: str, view_time: str, num_videos: str):
                 if p in running_processes:
                     running_processes.remove(p)
                 status_var.set(f"{script_name} đã xong • exit={p.returncode} • Còn {len(running_processes)} script đang chạy")
+                
+                # Enable lại tất cả button nếu không còn script nào chạy
+                if len(running_processes) == 0:
+                    enable_all_buttons()
         root.after(500, _poll)
 
     except Exception as e:
@@ -177,6 +218,9 @@ btn_comment = ttk.Button(actions, text="Auto Comment", command=lambda: on_action
 btn_follow = ttk.Button(actions, text="Auto Follow", command=lambda: on_action("follow"))
 btn_foryou = ttk.Button(actions, text="For You", command=lambda: on_action("foryou"))
 
+# Thêm các button vào danh sách để quản lý
+action_buttons.extend([btn_watch, btn_like, btn_comment, btn_follow, btn_foryou])
+
 btn_watch.grid(row=0, column=0, padx=6, pady=4, sticky="ew")
 btn_like.grid(row=0, column=1, padx=6, pady=4, sticky="ew")
 btn_comment.grid(row=0, column=2, padx=6, pady=4, sticky="ew")
@@ -184,7 +228,7 @@ btn_follow.grid(row=0, column=3, padx=6, pady=4, sticky="ew")
 btn_foryou.grid(row=0, column=4, padx=6, pady=4, sticky="ew")
 
 # Thêm nút Stop All
-btn_stop = ttk.Button(actions, text="Stop All", command=cleanup_processes, style="Stop.TButton")
+btn_stop = ttk.Button(actions, text="Stop script", command=cleanup_processes, style="Stop.TButton")
 btn_stop.grid(row=1, column=0, columnspan=5, padx=6, pady=(8, 4), sticky="ew")
 
 # Style cho nút Stop
@@ -200,8 +244,14 @@ def update_status():
     if running_processes:
         pids = [str(p.pid) for p in running_processes]
         status_var.set(f"Có {len(running_processes)} script đang chạy (PIDs: {', '.join(pids)})")
+        # Đảm bảo button bị disable khi có script chạy
+        if any(btn.cget("state") == "normal" for btn in action_buttons):
+            disable_all_buttons()
     else:
         status_var.set("Sẵn sàng.")
+        # Đảm bảo button được enable khi không có script nào chạy
+        if any(btn.cget("state") == "disabled" for btn in action_buttons):
+            enable_all_buttons()
     root.after(2000, update_status)  # Cập nhật mỗi 2 giây
 
 # Bắt đầu cập nhật status
@@ -213,5 +263,5 @@ root.bind("<Return>", lambda e: on_action("watch"))  # Enter = Auto Watch
 # Xử lý khi tắt giao diện
 root.protocol("WM_DELETE_WINDOW", on_closing)
 
-center_window(root, 760, 420)
+# center_window(root, 760, 420)
 root.mainloop()
