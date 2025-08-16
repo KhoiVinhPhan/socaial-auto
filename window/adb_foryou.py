@@ -4,9 +4,11 @@ import time
 import sys
 import cv2
 import numpy as np
+import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data.data_device import array as DEVICES
+from data.data_comment import array as comments
 
 
 def screenshot(serial):
@@ -96,12 +98,26 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
             time.sleep(view_time)
             #Click like
             screen = screenshot(serial)
-            pos = find_icon(screen, "./images/like-3.png")
-            print(pos)
-            if pos:
-                x_icon, y_icon, score = pos
+            pos_like = find_icon(screen, "./images/like-3.png")
+            print('pos_like', pos_like)
+            if pos_like:
+                x_icon, y_icon, score = pos_like
                 adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
             time.sleep(2)
+
+            #Click comment
+            pos_comment = find_icon(screen, "./images/comment-2.png")
+            print('pos_comment', pos_comment)
+            if pos_comment:
+                x_icon, y_icon, score = pos_comment
+                adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                adb(serial, "shell", "input", "tap", "135", "1233")
+                time.sleep(1)
+                adb(serial, "shell", "input", "text", random.choice(comments))
+                adb(serial, "shell", "input", "tap", "666", "852")
+                time.sleep(1)
+                adb(serial, "shell", "input", "tap", "359", "209")
+
 
             # Chuyển video
             adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
