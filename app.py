@@ -21,8 +21,7 @@ def disable_all_buttons():
     for btn in action_buttons:
         btn.configure(state="disabled")
         # Thêm tooltip để giải thích
-        # Đổi text thành "Đang chạy..." thay vì nối vào text cũ
-        btn.configure(text="Đang chạy...")
+        btn.configure(text=f"{btn.cget('text')} (Đang chạy...)")
     # Disable cả combobox
     view_time_combo.configure(state="disabled")
     num_videos_combo.configure(state="disabled")
@@ -104,7 +103,7 @@ def run_script(script_name: str, view_time: str, num_videos: str):
         # Truyền tham số nếu script con cần
         p = subprocess.Popen(
             [sys.executable, str(script_path), view_time, num_videos],
-            creationflags=creationflags
+            # creationflags=creationflags # ẩn console
         )
         
         # Thêm vào danh sách process đang chạy
@@ -202,7 +201,7 @@ num_videos_var = tk.StringVar(value="3")
 ttk.Label(card, text="Số lượng video", style="Muted.TLabel").grid(row=1, column=0, sticky="w", pady=6)
 num_videos_combo = ttk.Combobox(
     card, textvariable=num_videos_var, state="readonly",
-    values=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "20"]
+    values=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]
 )
 num_videos_combo.grid(row=1, column=1, sticky="ew", pady=6)
 
