@@ -122,13 +122,6 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
             # Chuyển video
             adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
 
-        # Send email notification when done (bỏ comment nếu muốn gửi mail)
-        print("Gửi email notification...")
-        send_email(
-            subject="Auto Bot TikTok",
-            body="Auto watch TikTok done",
-            receiver_email="khoivinhphan@gmail.com"
-        )    
         return f"[{serial}] OK"
     except Exception as e:
         return f"[{serial}] Lỗi: {e}"
@@ -150,21 +143,33 @@ def main():
 
     futures = []
     with ThreadPoolExecutor(max_workers=len(DEVICES)) as ex:
-        for d in DEVICES:
-            futures.append(
-                ex.submit(
-                    job_for_device, 
-                    d["serial"], 
-                    d.get("window_title"), 
-                    d.get("resolution"),
-                    # Truyền thêm view_time và number_video nếu job_for_device cần
-                    # Nếu chưa có, bạn cần sửa job_for_device nhận thêm 2 tham số này
-                    view_time,
-                    number_video
+        try:
+            for d in DEVICES:
+                futures.append(
+                    ex.submit(
+                        job_for_device, 
+                        d["serial"], 
+                        d.get("window_title"), 
+                        d.get("resolution"),
+                        # Truyền thêm view_time và number_video nếu job_for_device cần
+                        # Nếu chưa có, bạn cần sửa job_for_device nhận thêm 2 tham số này
+                        view_time,
+                        number_video
+                    )
                 )
-            )
-        for f in as_completed(futures):
-            print(f.result())
+            for f in as_completed(futures):
+                print(f.result())
+            
+            # Send email notification when done (bỏ comment nếu muốn gửi mail)
+            print("Gửi email notification...")
+            send_email(
+                subject="Auto Bot TikTok",
+                body="Auto watch TikTok done",
+                receiver_email="khoivinhphan@gmail.com"
+            )    
+        except Exception as e:
+            print(f"Lỗi khi submit job cho thiết bị: {e}")
+        
 
 if __name__ == "__main__":
     main()
