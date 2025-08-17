@@ -141,7 +141,8 @@ def on_action(action_key: str):
         "like": "adb_like.py",
         "comment": "adb_comment.py",
         "follow": "adb_follow.py",
-        "foryou": "adb_foryou.py",
+        "foryou_all": "adb_foryou_all.py",
+        "foryou_watch": "adb_foryou_watch.py",
     }
     run_script(mapping[action_key], view_time, num_videos)
 
@@ -150,7 +151,7 @@ def on_action(action_key: str):
 # -----------------------------
 root = tk.Tk()
 root.title(APP_TITLE)
-root.minsize(600, 420)
+# root.minsize(600, 420)
 root.resizable(False, False)
 
 # Theme & Style (ttk)
@@ -201,7 +202,7 @@ num_videos_var = tk.StringVar(value="3")
 ttk.Label(card, text="Số lượng video", style="Muted.TLabel").grid(row=1, column=0, sticky="w", pady=6)
 num_videos_combo = ttk.Combobox(
     card, textvariable=num_videos_var, state="readonly",
-    values=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]
+    values=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100", "200", "300", "400", "500", "600", "700", "800", "900", "1000"]
 )
 num_videos_combo.grid(row=1, column=1, sticky="ew", pady=6)
 
@@ -215,20 +216,23 @@ btn_watch = ttk.Button(actions, text="Auto Watch", command=lambda: on_action("wa
 btn_like = ttk.Button(actions, text="Auto Like", command=lambda: on_action("like"))
 btn_comment = ttk.Button(actions, text="Auto Comment", command=lambda: on_action("comment"))
 btn_follow = ttk.Button(actions, text="Auto Follow", command=lambda: on_action("follow"))
-btn_foryou = ttk.Button(actions, text="For You", command=lambda: on_action("foryou"))
+btn_foryou = ttk.Button(actions, text="For You All", command=lambda: on_action("foryou_all"))
+btn_foryou_watch = ttk.Button(actions, text="For You Watch", command=lambda: on_action("foryou_watch"))
 
 # Thêm các button vào danh sách để quản lý
 action_buttons.extend([btn_watch, btn_like, btn_comment, btn_follow, btn_foryou])
 
+# Sắp xếp 6 button thành 2 hàng, mỗi hàng 3 button
 btn_watch.grid(row=0, column=0, padx=6, pady=4, sticky="ew")
 btn_like.grid(row=0, column=1, padx=6, pady=4, sticky="ew")
 btn_comment.grid(row=0, column=2, padx=6, pady=4, sticky="ew")
-btn_follow.grid(row=0, column=3, padx=6, pady=4, sticky="ew")
-btn_foryou.grid(row=0, column=4, padx=6, pady=4, sticky="ew")
+btn_follow.grid(row=1, column=0, padx=6, pady=4, sticky="ew")
+btn_foryou.grid(row=1, column=1, padx=6, pady=4, sticky="ew")
+btn_foryou_watch.grid(row=1, column=2, padx=6, pady=4, sticky="ew")
 
-# Thêm nút Stop All
+# Thêm nút Stop All (đặt ở hàng tiếp theo, chiếm toàn bộ 3 cột)
 btn_stop = ttk.Button(actions, text="Stop script", command=cleanup_processes, style="Stop.TButton")
-btn_stop.grid(row=1, column=0, columnspan=5, padx=6, pady=(8, 4), sticky="ew")
+btn_stop.grid(row=2, column=0, columnspan=3, padx=6, pady=(8, 4), sticky="ew")
 
 # Style cho nút Stop
 style.configure("Stop.TButton", background="#dc3545", foreground="white")
