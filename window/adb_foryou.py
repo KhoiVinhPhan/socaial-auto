@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data.data_device import array as DEVICES
 from data.data_comment import array as comments
-
+from common.send_mail import send_email
 
 def screenshot(serial):
     out = subprocess.run(["adb", "-s", serial, "exec-out", "screencap", "-p"],
@@ -122,7 +122,13 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
             # Chuyển video
             adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
 
-            
+        # Send email notification when done (bỏ comment nếu muốn gửi mail)
+        print("Gửi email notification...")
+        send_email(
+            subject="Auto Bot TikTok",
+            body="Auto watch TikTok done",
+            receiver_email="khoivinhphan@gmail.com"
+        )    
         return f"[{serial}] OK"
     except Exception as e:
         return f"[{serial}] Lỗi: {e}"
