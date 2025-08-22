@@ -89,13 +89,14 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
                 adb(serial, "shell", "input", "tap", "115", "73")
 
             # Nhập text (khi có ký tự đặc biệt, đôi khi cần escape; có thể thử 'input text \"\\@ngheunek\"')
+            time.sleep(2)
             adb(serial, "shell", "input", "text", channel)
 
             # Click ô search trong trang tìm kiếm
             adb(serial, "shell", "input", "tap", "659", "75")
 
             # Click vào tab user
-            time.sleep(4)
+            time.sleep(5)
             adb(serial, "shell", "input", "tap", "141", "141")
 
             # Chờ và chọn user đầu tiên
@@ -112,7 +113,9 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
 
                 # Nhập comment
                 adb(serial, "shell", "input", "tap", "79", "1243")
+                time.sleep(1)
                 adb(serial, "shell", "input", "text", random.choice(comments))
+                time.sleep(1)
                 adb(serial, "shell", "input", "tap", "669", "853")
                 time.sleep(2)
                 

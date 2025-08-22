@@ -2,10 +2,29 @@ import os
 import subprocess
 import time
 import sys
+import cv2
+import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data.data_device import array as DEVICES
 
+
+def screenshot(serial):
+    out = subprocess.run(["adb", "-s", serial, "exec-out", "screencap", "-p"],
+                         stdout=subprocess.PIPE).stdout
+    img = cv2.imdecode(np.frombuffer(out, np.uint8), cv2.IMREAD_COLOR)
+    return img
+
+def find_icon(screen, template_path, threshold=0.85):
+    template = cv2.imread(template_path, cv2.IMREAD_COLOR)
+    result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+    _, max_val, _, max_loc = cv2.minMaxLoc(result)
+    print(max_val)
+    if max_val >= threshold:
+        h, w = template.shape[:2]
+        cx, cy = max_loc[0] + w//2, max_loc[1] + h//2
+        return cx, cy, max_val
+    return None
 
 # ==== HÀM TIỆN ÍCH ====
 def run(cmd, timeout=None):
@@ -88,18 +107,26 @@ def job_for_device(serial, window_title=None, resolution=None):
                 adb(serial, "shell", "input", "tap", "575", "73")
 
             # Nhập text (khi có ký tự đặc biệt, đôi khi cần escape; có thể thử 'input text \"\\@ngheunek\"')
+            time.sleep(2)
             adb(serial, "shell", "input", "text", channel)
 
             # Click ô search trong trang tìm kiếm
             adb(serial, "shell", "input", "tap", "659", "75")
 
             # Click vào tab user
-            time.sleep(4)
+            time.sleep(5)
             adb(serial, "shell", "input", "tap", "141", "141")
 
             # Chờ và chọn follow user đầu tiên
             time.sleep(5)
             adb(serial, "shell", "input", "tap", "627", "237")
+            # screen = screenshot(serial)
+            # pos_follow = find_icon(screen, "./images/follow-4.png")
+            # print('pos_follow', pos_follow)
+            # if pos_follow:
+            #     x_icon, y_icon, score = pos_follow
+            #     adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+            # time.sleep(1)
             
 
         return f"[{serial}] OK"

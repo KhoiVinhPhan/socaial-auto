@@ -103,7 +103,7 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
             if pos_like:
                 x_icon, y_icon, score = pos_like
                 adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
-            time.sleep(2)
+            time.sleep(1)
 
             #Click comment
             pos_comment = find_icon(screen, "./images/comment-2.png")
@@ -111,15 +111,16 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
             if pos_comment:
                 x_icon, y_icon, score = pos_comment
                 adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
-                adb(serial, "shell", "input", "tap", "135", "1233")
+                time.sleep(1)
+                adb(serial, "shell", "input", "tap", "151", "1233") 
                 time.sleep(1)
                 adb(serial, "shell", "input", "text", random.choice(comments))
+                time.sleep(1)
                 adb(serial, "shell", "input", "tap", "666", "852")
                 time.sleep(1)
-                adb(serial, "shell", "input", "tap", "359", "209")
+                adb(serial, "shell", "input", "tap", "335", "271")
 
-
-            # Chuyển video
+            time.sleep(1)
             adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
 
         return f"[{serial}] OK"

@@ -36,7 +36,8 @@ def enable_all_buttons():
             "Auto Like": "Auto Like", 
             "Auto Comment": "Auto Comment",
             "Auto Follow": "Auto Follow",
-            "For You": "For You"
+            "For You All": "For You All",
+            "For You Watch": "For You Watch"
         }
         btn.configure(text=original_texts.get(btn.cget('text').replace(" (Đang chạy...)", ""), btn.cget('text').replace(" (Đang chạy...)", "")))
     # Enable cả combobox
@@ -220,7 +221,7 @@ btn_foryou = ttk.Button(actions, text="For You All", command=lambda: on_action("
 btn_foryou_watch = ttk.Button(actions, text="For You Watch", command=lambda: on_action("foryou_watch"))
 
 # Thêm các button vào danh sách để quản lý
-action_buttons.extend([btn_watch, btn_like, btn_comment, btn_follow, btn_foryou])
+action_buttons.extend([btn_watch, btn_like, btn_comment, btn_follow, btn_foryou, btn_foryou_watch])
 
 # Sắp xếp 6 button thành 2 hàng, mỗi hàng 3 button
 btn_watch.grid(row=0, column=0, padx=6, pady=4, sticky="ew")
