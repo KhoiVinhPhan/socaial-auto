@@ -96,12 +96,12 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
         # Lướt {number_video} video
         for _ in range(number_video):
             time.sleep(view_time)
-           
+            screen = screenshot(serial)
             choice_like = random.choice([True, False])
             print('choice_like', choice_like)
             if choice_like:
                 #Click like
-                screen = screenshot(serial)
+               
                 pos_like = find_icon(screen, "./images/like-3.png")
                 print('pos_like', pos_like)
                 if pos_like:
@@ -110,7 +110,6 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
                 time.sleep(2)
 
                 #Click save
-                screen = screenshot(serial)
                 pos_save = find_icon(screen, "./images/save.png")
                 print('pos_save', pos_save)
                 if pos_save:
