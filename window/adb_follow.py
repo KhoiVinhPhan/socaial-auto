@@ -78,7 +78,7 @@ def move_window_if_needed(window_title, width, height):
         print(f"[UI] Lỗi chỉnh cửa sổ '{window_title}': {e}")
 
 # ==== LOGIC TÁC VỤ CHO MỘT THIẾT BỊ ====
-def job_for_device(serial, window_title=None, resolution=None):
+def job_for_device(serial, window_title=None, resolution=None, view_time=None, number_video=None):
     try:
         # 1) Kết nối ADB
         if not adb_connect(serial):
@@ -115,19 +115,37 @@ def job_for_device(serial, window_title=None, resolution=None):
 
             # Click vào tab user
             time.sleep(5)
-            adb(serial, "shell", "input", "tap", "141", "141")
+            screen = screenshot(serial)
+            pos_tab_user = find_icon(screen, "./images/tab_user.png")
+            print('pos_tab_user', pos_tab_user)
+            if pos_tab_user:
+                x_icon, y_icon, score = pos_tab_user
+                adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
 
-            # Chờ và chọn follow user đầu tiên
-            time.sleep(5)
-            adb(serial, "shell", "input", "tap", "627", "237")
-            # screen = screenshot(serial)
-            # pos_follow = find_icon(screen, "./images/follow-4.png")
-            # print('pos_follow', pos_follow)
-            # if pos_follow:
-            #     x_icon, y_icon, score = pos_follow
-            #     adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
-            # time.sleep(1)
-            
+                # Click vào user đầu tiên
+                time.sleep(5)
+                adb(serial, "shell", "input", "tap", "67", "243")
+
+                # Click vào video đầu tiên của user
+                time.sleep(5)
+                adb(serial, "shell", "input", "tap", "109", "843")
+
+                # Lướt number_video video
+                for _ in range(number_video):
+                    time.sleep(view_time)
+                    #Click like
+                    screen = screenshot(serial)
+                    pos = find_icon(screen, "./images/like-3.png")
+                    print(pos)
+                    if pos:
+                        x_icon, y_icon, score = pos
+                        adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                    time.sleep(2)
+
+                    #Lướt video
+                    adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
+            else:
+                print('Không tìm thấy tab user')
 
         return f"[{serial}] OK"
     except Exception as e:
@@ -135,11 +153,32 @@ def job_for_device(serial, window_title=None, resolution=None):
 
 # ==== CHẠY SONG SONG NHIỀU THIẾT BỊ ====
 def main():
+    import sys
+
+    # Nhận tham số từ dòng lệnh: view_time, number_video
+    if len(sys.argv) < 3:
+        print("Thiếu tham số: view_time và number_video")
+        sys.exit(1)
+    try:
+        view_time = int(sys.argv[1])
+        number_video = int(sys.argv[2])
+    except Exception as e:
+        print(f"Lỗi chuyển đổi tham số: {e}")
+        sys.exit(1)
     futures = []
     with ThreadPoolExecutor(max_workers=len(DEVICES)) as ex:
         for d in DEVICES:
-            futures.append(
-                ex.submit(job_for_device, d["serial"], d.get("window_title"), d.get("resolution"))
+           futures.append(
+                ex.submit(
+                    job_for_device, 
+                    d["serial"], 
+                    d.get("window_title"), 
+                    d.get("resolution"),
+                    # Truyền thêm view_time và number_video nếu job_for_device cần
+                    # Nếu chưa có, bạn cần sửa job_for_device nhận thêm 2 tham số này
+                    view_time,
+                    number_video
+                )
             )
         for f in as_completed(futures):
             print(f.result())

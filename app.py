@@ -224,12 +224,12 @@ btn_foryou_watch = ttk.Button(actions, text="For You Watch", command=lambda: on_
 action_buttons.extend([btn_watch, btn_like, btn_comment, btn_follow, btn_foryou, btn_foryou_watch])
 
 # Sắp xếp 6 button thành 2 hàng, mỗi hàng 3 button
-btn_watch.grid(row=0, column=0, padx=6, pady=4, sticky="ew")
-btn_like.grid(row=0, column=1, padx=6, pady=4, sticky="ew")
-btn_comment.grid(row=0, column=2, padx=6, pady=4, sticky="ew")
+# btn_watch.grid(row=0, column=0, padx=6, pady=4, sticky="ew")
+# btn_like.grid(row=0, column=1, padx=6, pady=4, sticky="ew")
+# btn_comment.grid(row=0, column=2, padx=6, pady=4, sticky="ew")
 btn_follow.grid(row=1, column=0, padx=6, pady=4, sticky="ew")
 btn_foryou.grid(row=1, column=1, padx=6, pady=4, sticky="ew")
-btn_foryou_watch.grid(row=1, column=2, padx=6, pady=4, sticky="ew")
+# btn_foryou_watch.grid(row=1, column=2, padx=6, pady=4, sticky="ew")
 
 # Thêm nút Stop All (đặt ở hàng tiếp theo, chiếm toàn bộ 3 cột)
 btn_stop = ttk.Button(actions, text="Stop script", command=cleanup_processes, style="Stop.TButton")

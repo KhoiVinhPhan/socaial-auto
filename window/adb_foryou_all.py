@@ -96,31 +96,48 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
         # Lướt {number_video} video
         for _ in range(number_video):
             time.sleep(view_time)
-            #Click like
-            screen = screenshot(serial)
-            pos_like = find_icon(screen, "./images/like-3.png")
-            print('pos_like', pos_like)
-            if pos_like:
-                x_icon, y_icon, score = pos_like
-                adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
-            time.sleep(1)
+           
+            choice_like = random.choice([True, False])
+            print('choice_like', choice_like)
+            if choice_like:
+                #Click like
+                screen = screenshot(serial)
+                pos_like = find_icon(screen, "./images/like-3.png")
+                print('pos_like', pos_like)
+                if pos_like:
+                    x_icon, y_icon, score = pos_like
+                    adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                time.sleep(2)
+
+                #Click save
+                screen = screenshot(serial)
+                pos_save = find_icon(screen, "./images/save.png")
+                print('pos_save', pos_save)
+                if pos_save:
+                    x_icon, y_icon, score = pos_save
+                    adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                time.sleep(2)
 
             #Click comment
-            pos_comment = find_icon(screen, "./images/comment-2.png")
-            print('pos_comment', pos_comment)
-            if pos_comment:
-                x_icon, y_icon, score = pos_comment
-                adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
-                time.sleep(1)
-                adb(serial, "shell", "input", "tap", "151", "1233") 
-                time.sleep(1)
-                adb(serial, "shell", "input", "text", random.choice(comments))
-                time.sleep(1)
-                adb(serial, "shell", "input", "tap", "666", "852")
-                time.sleep(1)
-                adb(serial, "shell", "input", "tap", "335", "271")
+            choice_comment = random.choice([True, False])
+            print('choice_comment', choice_comment)
+            if choice_comment:
+                pos_comment = find_icon(screen, "./images/comment-2.png")
+                print('pos_comment', pos_comment)
+                if pos_comment:
+                    x_icon, y_icon, score = pos_comment
+                    adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                    time.sleep(2)
+                    adb(serial, "shell", "input", "tap", "151", "1233") 
+                    time.sleep(2)
+                    adb(serial, "shell", "input", "text", random.choice(comments))
+                    time.sleep(2)
+                    adb(serial, "shell", "input", "tap", "666", "852")
+                    time.sleep(2)
+                    adb(serial, "shell", "input", "tap", "335", "271")
 
-            time.sleep(1)
+                time.sleep(1)
+
             adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
 
         return f"[{serial}] OK"
