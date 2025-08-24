@@ -133,17 +133,28 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
                 # Lướt number_video video
                 for _ in range(number_video):
                     time.sleep(view_time)
-                    #Click like
+                    # Click like
                     screen = screenshot(serial)
                     pos = find_icon(screen, "./images/like-3.png")
-                    print(pos)
+                    print('pos_like', pos)
                     if pos:
                         x_icon, y_icon, score = pos
                         adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
                     time.sleep(2)
 
-                    #Lướt video
-                    adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
+                    # Nếu là video cuối cùng, bấm thêm nút follow
+                    if _ == number_video - 1:
+                        screen = screenshot(serial)
+                        pos_follow = find_icon(screen, "./images/follow-small.png")
+                        print('pos_follow', pos_follow)
+                        if pos_follow:
+                            x_icon, y_icon, score = pos_follow
+                            adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                        time.sleep(2)
+
+                    # Lướt video (trừ video cuối thì không lướt nữa)
+                    if _ != number_video - 1:
+                        adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
             else:
                 print('Không tìm thấy tab user')
 
