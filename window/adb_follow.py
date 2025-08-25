@@ -7,6 +7,7 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data.data_device import array as DEVICES
+from common.send_mail import send_email
 
 
 def screenshot(serial):
@@ -176,23 +177,47 @@ def main():
     except Exception as e:
         print(f"Lỗi chuyển đổi tham số: {e}")
         sys.exit(1)
+
     futures = []
-    with ThreadPoolExecutor(max_workers=len(DEVICES)) as ex:
-        for d in DEVICES:
-           futures.append(
-                ex.submit(
-                    job_for_device, 
-                    d["serial"], 
-                    d.get("window_title"), 
-                    d.get("resolution"),
-                    # Truyền thêm view_time và number_video nếu job_for_device cần
-                    # Nếu chưa có, bạn cần sửa job_for_device nhận thêm 2 tham số này
-                    view_time,
-                    number_video
-                )
-            )
-        for f in as_completed(futures):
-            print(f.result())
+    # Tối ưu: chỉ chạy job cho các thiết bị đang online (máy ảo đã bật)
+    online_devices = []
+    for d in DEVICES:
+        serial = d["serial"]
+        # Kiểm tra thiết bị có online không (adb devices)
+        ok, out = adb(serial, "get-state")
+        if ok and out.strip() == "device":
+            online_devices.append(d)
+        else:
+            print(f"[{serial}] Thiết bị không online, bỏ qua.")
+
+    if not online_devices:
+        print("Không có thiết bị nào online để chạy.")
+        return
+
+    with ThreadPoolExecutor(max_workers=len(online_devices)) as ex:
+        try:
+            for d in online_devices:
+                futures.append(
+                        ex.submit(
+                            job_for_device, 
+                            d["serial"], 
+                            d.get("window_title"), 
+                            d.get("resolution"),
+                            view_time,
+                            number_video
+                        )
+                    )
+            for f in as_completed(futures):
+                print(f.result())
+
+            print("Gửi email notification processing ...")
+            send_email(
+                subject="[Auto Bot] TikTok",
+                body="Auto watch TikTok done",
+                receiver_email=["khoivinhphan@gmail.com", "khoivinh282828@gmail.com"]
+            )    
+        except Exception as e:
+            print(f"Lỗi khi submit job cho thiết bị: {e}")
 
 if __name__ == "__main__":
     main()
