@@ -223,9 +223,9 @@ def main():
             
             print("Gửi email notification...")
             send_email(
-                subject="Auto Bot TikTok",
+                subject="[Auto Bot] TikTok",
                 body="Auto watch TikTok done",
-                receiver_email="khoivinhphan@gmail.com"
+                receiver_email=["khoivinhphan@gmail.com", "duyenhai838@gmail.com"]
             )    
         except Exception as e:
             print(f"Lỗi khi submit job cho thiết bị: {e}")
