@@ -205,9 +205,24 @@ def main():
         sys.exit(1)
 
     futures = []
-    with ThreadPoolExecutor(max_workers=len(DEVICES)) as ex:
+    # Tối ưu: chỉ chạy job cho các thiết bị đang online (máy ảo đã bật)
+    online_devices = []
+    for d in DEVICES:
+        serial = d["serial"]
+        # Kiểm tra thiết bị có online không (adb devices)
+        ok, out = adb(serial, "get-state")
+        if ok and out.strip() == "device":
+            online_devices.append(d)
+        else:
+            print(f"[{serial}] Thiết bị không online, bỏ qua.")
+
+    if not online_devices:
+        print("Không có thiết bị nào online để chạy.")
+        return
+
+    with ThreadPoolExecutor(max_workers=len(online_devices)) as ex:
         try:
-            for d in DEVICES:
+            for d in online_devices:
                 futures.append(
                     ex.submit(
                         job_for_device, 
