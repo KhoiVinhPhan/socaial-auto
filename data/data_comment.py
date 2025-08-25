@@ -4,4 +4,13 @@ array = [
     "love",
     "wow",
     "haha",
+    "I like it",
+    "I love it",
+    "I'm not sure",
+    "Beautiful",
+    "Amazing",
+    "Great",
+    "Good",
+    "Bad",
+    "Awful",
 ]
