@@ -6,19 +6,43 @@ import cv2
 import numpy as np
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data.data_device import array as DEVICES
 from data.data_comment import array as comments
 from common.send_mail import send_email
 
+# === Lưu ý về vấn đề khi chạy nhiều máy ảo song song ===
+# 1. ADB không thread-safe: Khi nhiều thread/process cùng gửi lệnh adb, có thể bị nghẽn hoặc conflict, nhất là khi nhiều thiết bị cùng port 127.0.0.1:<port>.
+# 2. subprocess.run (dùng cho adb) là blocking, nhưng không đồng bộ hóa truy cập adb, có thể gây lỗi khi nhiều thread cùng lúc.
+# 3. Nếu máy yếu, CPU/RAM không đủ, thao tác nhận diện ảnh (cv2) và adb sẽ bị chậm, gây timeout hoặc thao tác không đúng.
+# 4. Việc random.choice([True, False]) cho like/comment/save có thể khiến hành vi không đồng nhất, dễ gây hiểu nhầm là "không thực hiện đúng sự kiện".
+# 5. Không kiểm tra kết quả trả về của adb (chỉ in ra), nếu adb bị treo hoặc disconnect, thao tác tiếp theo vẫn chạy tiếp.
+# 6. Không có lock khi thao tác adb, có thể gây race condition nếu adb server bị nghẽn.
+
+# === Giải pháp: Thêm lock cho adb, kiểm tra kết quả trả về, tăng timeout, log kỹ hơn ===
+
+adb_lock = Lock()
+
 def screenshot(serial):
-    out = subprocess.run(["adb", "-s", serial, "exec-out", "screencap", "-p"],
-                         stdout=subprocess.PIPE).stdout
-    img = cv2.imdecode(np.frombuffer(out, np.uint8), cv2.IMREAD_COLOR)
-    return img
+    # Thêm timeout và kiểm tra lỗi
+    try:
+        with adb_lock:
+            out = subprocess.run(["adb", "-s", serial, "exec-out", "screencap", "-p"],
+                                 stdout=subprocess.PIPE, timeout=10).stdout
+        img = cv2.imdecode(np.frombuffer(out, np.uint8), cv2.IMREAD_COLOR)
+        return img
+    except Exception as e:
+        print(f"[{serial}] Lỗi screenshot: {e}")
+        return None
 
 def find_icon(screen, template_path, threshold=0.85):
+    if screen is None:
+        return None
     template = cv2.imread(template_path, cv2.IMREAD_COLOR)
+    if template is None:
+        print(f"[IMG] Không tìm thấy template: {template_path}")
+        return None
     result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
     _, max_val, _, max_loc = cv2.minMaxLoc(result)
     if max_val >= threshold:
@@ -30,12 +54,16 @@ def find_icon(screen, template_path, threshold=0.85):
 # ==== HÀM TIỆN ÍCH ====
 def run(cmd, timeout=None):
     """Chạy lệnh và trả về (stdout, stderr, returncode)"""
-    p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-    return p.stdout.strip(), p.stderr.strip(), p.returncode
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        return p.stdout.strip(), p.stderr.strip(), p.returncode
+    except Exception as e:
+        return "", str(e), -1
 
 def adb_connect(serial, retry=3, delay=2):
     for i in range(retry):
-        out, err, rc = run(["adb", "connect", serial])
+        with adb_lock:
+            out, err, rc = run(["adb", "connect", serial], timeout=10)
         if "connected" in out or "already connected" in out:
             print(f"[{serial}] Đã kết nối ADB")
             return True
@@ -46,14 +74,14 @@ def adb_connect(serial, retry=3, delay=2):
 def adb(serial, *args, timeout=None):
     """Gửi lệnh adb -s <serial> ..."""
     full = ["adb", "-s", serial, *args]
-    out, err, rc = run(full, timeout=timeout)
+    with adb_lock:
+        out, err, rc = run(full, timeout=timeout or 10)
     if err:
         print(f"[{serial}] ERR: {err}")
     if out:
         print(f"[{serial}] {out}")
     return rc == 0, out
 
-# (TÙY CHỌN) Nếu bạn muốn chỉnh vị trí/kích thước cửa sổ BlueStacks theo từng máy:
 def move_window_if_needed(window_title, width, height):
     try:
         import win32gui, win32api
@@ -91,53 +119,71 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
             move_window_if_needed(window_title, w, h)
 
         # 3) Thực thi chuỗi thao tác TikTok
-        # Click ô search home
-       
-        # Lướt {number_video} video
-        for _ in range(number_video):
+        for idx in range(number_video):
+            print(f"[{serial}] --- Video {idx+1}/{number_video} ---")
             time.sleep(view_time)
             screen = screenshot(serial)
+            if screen is None:
+                print(f"[{serial}] Không lấy được screenshot, bỏ qua video này.")
+                continue
+
             choice_like = random.choice([True, False])
-            print('choice_like', choice_like)
+            print(f"[{serial}] choice_like: {choice_like}")
             if choice_like:
-                #Click like
-               
                 pos_like = find_icon(screen, "./images/like-3.png")
-                print('pos_like', pos_like)
+                print(f"[{serial}] pos_like: {pos_like}")
                 if pos_like:
                     x_icon, y_icon, score = pos_like
-                    adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                    ok, _ = adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                    if not ok:
+                        print(f"[{serial}] Lỗi tap like")
                 time.sleep(2)
 
-                #Click save
                 pos_save = find_icon(screen, "./images/save.png")
-                print('pos_save', pos_save)
+                print(f"[{serial}] pos_save: {pos_save}")
                 if pos_save:
                     x_icon, y_icon, score = pos_save
-                    adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                    ok, _ = adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                    if not ok:
+                        print(f"[{serial}] Lỗi tap save")
                 time.sleep(2)
 
-            #Click comment
             choice_comment = random.choice([True, False])
-            print('choice_comment', choice_comment)
+            print(f"[{serial}] choice_comment: {choice_comment}")
             if choice_comment:
                 pos_comment = find_icon(screen, "./images/comment-2.png")
-                print('pos_comment', pos_comment)
+                print(f"[{serial}] pos_comment: {pos_comment}")
                 if pos_comment:
                     x_icon, y_icon, score = pos_comment
-                    adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
-                    time.sleep(3)
-                    adb(serial, "shell", "input", "tap", "151", "1233") 
-                    time.sleep(3)
-                    adb(serial, "shell", "input", "text", random.choice(comments))
-                    time.sleep(3)
-                    adb(serial, "shell", "input", "tap", "666", "852")
-                    time.sleep(3)
-                    adb(serial, "shell", "input", "tap", "335", "271")
+                    ok, _ = adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
+                    if not ok:
+                        print(f"[{serial}] Lỗi tap comment icon")
+                    time.sleep(2)
+                    ok, _ = adb(serial, "shell", "input", "tap", "151", "1233")
+                    if not ok:
+                        print(f"[{serial}] Lỗi tap vào ô nhập comment")
+                    time.sleep(2)
+                    comment_text = random.choice(comments)
+                    ok, _ = adb(serial, "shell", "input", "text", comment_text)
+                    if not ok:
+                        print(f"[{serial}] Lỗi nhập comment")
+                    time.sleep(2)
+                    ok, _ = adb(serial, "shell", "input", "tap", "666", "852")
+                    if not ok:
+                        print(f"[{serial}] Lỗi tap gửi comment")
+                    time.sleep(2)
+                    ok, _ = adb(serial, "shell", "input", "tap", "335", "271")
+                    if not ok:
+                        print(f"[{serial}] Lỗi tap đóng comment")
 
+                    # Click lan 2
+                    time.sleep(1)
+                    adb(serial, "shell", "input", "tap", "335", "271")
                 time.sleep(2)
 
-            adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
+            ok, _ = adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
+            if not ok:
+                print(f"[{serial}] Lỗi swipe sang video tiếp theo")
 
         return f"[{serial}] OK"
     except Exception as e:
@@ -168,8 +214,6 @@ def main():
                         d["serial"], 
                         d.get("window_title"), 
                         d.get("resolution"),
-                        # Truyền thêm view_time và number_video nếu job_for_device cần
-                        # Nếu chưa có, bạn cần sửa job_for_device nhận thêm 2 tham số này
                         view_time,
                         number_video
                     )
@@ -177,7 +221,6 @@ def main():
             for f in as_completed(futures):
                 print(f.result())
             
-            # Send email notification when done (bỏ comment nếu muốn gửi mail)
             print("Gửi email notification...")
             send_email(
                 subject="Auto Bot TikTok",
