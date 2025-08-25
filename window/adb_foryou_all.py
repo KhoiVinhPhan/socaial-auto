@@ -126,16 +126,16 @@ def job_for_device(serial, window_title=None, resolution=None, view_time=None, n
                 if pos_comment:
                     x_icon, y_icon, score = pos_comment
                     adb(serial, "shell", "input", "tap", str(x_icon), str(y_icon))
-                    time.sleep(2)
+                    time.sleep(3)
                     adb(serial, "shell", "input", "tap", "151", "1233") 
-                    time.sleep(2)
+                    time.sleep(3)
                     adb(serial, "shell", "input", "text", random.choice(comments))
-                    time.sleep(2)
+                    time.sleep(3)
                     adb(serial, "shell", "input", "tap", "666", "852")
-                    time.sleep(2)
+                    time.sleep(3)
                     adb(serial, "shell", "input", "tap", "335", "271")
 
-                time.sleep(1)
+                time.sleep(2)
 
             adb(serial, "shell", "input", "swipe", "339", "959", "363", "137", "500")
 
