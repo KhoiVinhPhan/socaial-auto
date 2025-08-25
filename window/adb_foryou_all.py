@@ -24,6 +24,53 @@ from common.send_mail import send_email
 
 adb_lock = Lock()
 
+# ==== HÀM KIỂM TRA TRẠNG THÁI BLUESTACKS ====
+def check_bluestacks_status(port):
+    """Kiểm tra xem BlueStacks có đang chạy trên port này không"""
+    try:
+        # Kiểm tra kết nối TCP đến port
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)  # Timeout 1 giây
+        result = sock.connect_ex(('127.0.0.1', port))
+        sock.close()
+        
+        if result == 0:
+            # Port đang mở, kiểm tra thêm bằng adb devices
+            with adb_lock:
+                out, err, rc = run(["adb", "devices"], timeout=3)
+            if f"127.0.0.1:{port}" in out and "device" in out:
+                return True, "Đang chạy và có thể kết nối ADB"
+            elif f"127.0.0.1:{port}" in out:
+                return True, "Đang chạy nhưng chưa kết nối ADB"
+            else:
+                return True, "Đang chạy nhưng không phản hồi ADB"
+        else:
+            return False, "Port không mở"
+    except Exception as e:
+        return False, f"Lỗi kiểm tra: {e}"
+
+def get_active_bluestacks():
+    """Lấy danh sách BlueStacks đang hoạt động"""
+    active_instances = []
+    
+    print("=== KIỂM TRA TRẠNG THÁI BLUESTACKS ===")
+    for device in DEVICES:
+        serial = device["serial"]
+        if ":" in serial:
+            port = int(serial.split(":")[1])
+            is_active, status = check_bluestacks_status(port)
+            
+            if is_active:
+                device_copy = device.copy()
+                device_copy["status"] = status
+                active_instances.append(device_copy)
+                print(f"[{serial}] {status}")
+            else:
+                print(f"[{serial}] {status} - Bỏ qua")
+    
+    return active_instances
+
 def screenshot(serial):
     # Thêm timeout và kiểm tra lỗi
     try:
@@ -196,6 +243,8 @@ def main():
     # Nhận tham số từ dòng lệnh: view_time, number_video
     if len(sys.argv) < 3:
         print("Thiếu tham số: view_time và number_video")
+        print("Sử dụng: python adb_foryou_all.py <view_time> <number_video>")
+        print("Ví dụ: python adb_foryou_all.py 10 5")
         sys.exit(1)
     try:
         view_time = int(sys.argv[1])
@@ -204,25 +253,30 @@ def main():
         print(f"Lỗi chuyển đổi tham số: {e}")
         sys.exit(1)
 
-    futures = []
-    # Tối ưu: chỉ chạy job cho các thiết bị đang online (máy ảo đã bật)
-    online_devices = []
-    for d in DEVICES:
-        serial = d["serial"]
-        # Kiểm tra thiết bị có online không (adb devices)
-        ok, out = adb(serial, "get-state")
-        if ok and out.strip() == "device":
-            online_devices.append(d)
-        else:
-            print(f"[{serial}] Thiết bị không online, bỏ qua.")
-
-    if not online_devices:
-        print("Không có thiết bị nào online để chạy.")
+    # Kiểm tra trạng thái BlueStacks trước khi chạy
+    active_devices = get_active_bluestacks()
+    
+    if not active_devices:
+        print("❌ Không có BlueStacks nào đang chạy!")
+        print("💡 Hãy khởi động BlueStacks trước khi chạy script")
         return
+    
+    print(f"\n✅ Tìm thấy {len(active_devices)} BlueStacks đang hoạt động")
+    print(f"📊 TỔNG KẾT:")
+    print(f"   - Tổng cấu hình: {len(DEVICES)}")
+    print(f"   - Đang hoạt động: {len(active_devices)}")
+    print(f"   - Không hoạt động: {len(DEVICES) - len(active_devices)}")
+    
+    print(f"\n🎯 BẮT ĐẦU XỬ LÝ:")
+    print(f"   - Thời gian xem mỗi video: {view_time} giây")
+    print(f"   - Số video sẽ xem: {number_video}")
+    print("=" * 50)
 
-    with ThreadPoolExecutor(max_workers=len(online_devices)) as ex:
+    futures = []
+
+    with ThreadPoolExecutor(max_workers=len(active_devices)) as ex:
         try:
-            for d in online_devices:
+            for d in active_devices:
                 futures.append(
                     ex.submit(
                         job_for_device, 
@@ -236,6 +290,7 @@ def main():
             for f in as_completed(futures):
                 print(f.result())
             
+            print("\n🎉 HOÀN THÀNH TẤT CẢ THIẾT BỊ!")
             print("Gửi email notification...")
             send_email(
                 subject="[Auto Bot] TikTok",
@@ -244,7 +299,26 @@ def main():
             )    
         except Exception as e:
             print(f"Lỗi khi submit job cho thiết bị: {e}")
-        
+
+def quick_status_check():
+    """Kiểm tra nhanh trạng thái tất cả BlueStacks"""
+    print("=== KIỂM TRA NHANH TRẠNG THÁI BLUESTACKS ===")
+    active_devices = get_active_bluestacks()
+    
+    if not active_devices:
+        print("❌ Không có BlueStacks nào đang chạy!")
+        return
+    
+    print(f"\n📊 TỔNG KẾT:")
+    print(f"   - Tổng cấu hình: {len(DEVICES)}")
+    print(f"   - Đang hoạt động: {len(active_devices)}")
+    print(f"   - Không hoạt động: {len(DEVICES) - len(active_devices)}")
+    
+    return active_devices
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "--status":
+        quick_status_check()
+    else:
+        main()
